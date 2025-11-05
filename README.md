@@ -1,1 +1,1 @@
-"# VecWallet" 
+# VecWallet
