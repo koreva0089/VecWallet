@@ -10,10 +10,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -32,9 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.vecwallet.ui.model.Amount
 import com.example.vecwallet.ui.theme.VecWalletTheme
-import com.example.vecwallet.ui.utils.OperationType
 import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
@@ -63,64 +58,27 @@ fun CurrentCashScreen(
     }
     if (showAddDialog) {
         var amountCashString by rememberSaveable { mutableStateOf("0.00") }
-        AlertDialog(
-            onDismissRequest = { showAddDialog = false },
-            dismissButton = {
-                TextButton(onClick = { showAddDialog = false }) {
-                    Text("Cancel")
-                }
+        AddCashDialog(
+            cashAmount = cashAmount,
+            amountCashString = amountCashString,
+            onCancelClick = { showAddDialog = false },
+            onConfirmClick = {
+                cashAmount += amountCashString.toDouble()
+                showAddDialog = false
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    val differCash = amountCashString.toDouble()
-                    cashAmount += differCash
-                    showAddDialog = false
-                }) {
-                    Text("Add")
-                }
-            },
-            title = { Text("Add to cash") },
-            text = {
-                Column {
-                    Text(text = "$cashAmount + $amountCashString = ${cashAmount + amountCashString.toDouble()}")
-                    OutlinedTextField(
-                        label = { Text("Add amount") },
-                        value = amountCashString,
-                        onValueChange = { amountCashString = it }
-                    )
-                }
-            }
+            onTextChanged = { amountCashString = it }
         )
     } else if (showReduceDialog) {
         var amountCashString by rememberSaveable { mutableStateOf("0.00") }
-        AlertDialog(
-            onDismissRequest = { showReduceDialog = false },
-            dismissButton = {
-                TextButton(onClick = { showReduceDialog = false }) {
-                    Text("Cancel")
-                }
+        ReduceCashDialog(
+            cashAmount = cashAmount,
+            amountCashString = amountCashString,
+            onCancelClick = { showReduceDialog = false },
+            onConfirmClick = {
+                cashAmount -= amountCashString.toDouble()
+                showReduceDialog = false
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    val differCash = amountCashString.toDouble()
-                    cashAmount -= differCash
-                    showReduceDialog = false
-                }
-                ) {
-                    Text("Reduce")
-                }
-            },
-            title = { Text("Reduce from cash") },
-            text = {
-                Column {
-                    Text(text = "$cashAmount - $amountCashString = ${cashAmount - amountCashString.toDouble()}")
-                    OutlinedTextField(
-                        label = { Text("Reduce amount") },
-                        value = amountCashString,
-                        onValueChange = { amountCashString = it }
-                    )
-                }
-            }
+            onTextChanged = { amountCashString = it }
         )
     }
 }
@@ -210,6 +168,78 @@ private fun CurrentCashButton(
             fontSize = 32.sp
         )
     }
+}
+
+@Composable
+private fun AddCashDialog(
+    cashAmount: Double,
+    amountCashString: String,
+    onCancelClick: () -> Unit,
+    onConfirmClick: () -> Unit,
+    onTextChanged: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    AlertDialog(
+        onDismissRequest = onCancelClick,
+        dismissButton = {
+            TextButton(onClick = onCancelClick) {
+                Text("Cancel")
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirmClick) {
+                Text("Add")
+            }
+        },
+        title = { Text("Add to cash") },
+        text = {
+            Column {
+                Text(text = "$cashAmount + $amountCashString = ${cashAmount + amountCashString.toDouble()}")
+                OutlinedTextField(
+                    label = { Text("Add amount") },
+                    value = amountCashString,
+                    onValueChange = onTextChanged
+                )
+            }
+        },
+        modifier = modifier
+    )
+}
+
+@Composable
+fun ReduceCashDialog(
+    cashAmount: Double,
+    amountCashString: String,
+    onCancelClick: () -> Unit,
+    onConfirmClick: () -> Unit,
+    onTextChanged: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    AlertDialog(
+        onDismissRequest = onCancelClick,
+        dismissButton = {
+            TextButton(onClick = onCancelClick) {
+                Text("Cancel")
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirmClick) {
+                Text("Reduce")
+            }
+        },
+        title = { Text("Reduce from cash") },
+        text = {
+            Column {
+                Text(text = "$cashAmount - $amountCashString = ${cashAmount - amountCashString.toDouble()}")
+                OutlinedTextField(
+                    label = { Text("Reduce amount") },
+                    value = amountCashString,
+                    onValueChange = onTextChanged
+                )
+            }
+        },
+        modifier = modifier
+    )
 }
 
 @Preview(showBackground = true)
