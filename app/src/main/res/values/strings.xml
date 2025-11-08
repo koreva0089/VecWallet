@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Vec Wallet</string>
+    <string name="cancel_button_text">Cancel</string>
+    <string name="reduce_button_text">Reduce</string>
+    <string name="reduce_text">Reduce amount</string>
 </resources>

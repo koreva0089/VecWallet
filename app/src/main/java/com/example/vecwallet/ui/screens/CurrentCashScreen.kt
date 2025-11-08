@@ -17,18 +17,21 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.vecwallet.R
 import com.example.vecwallet.ui.theme.VecWalletTheme
 import java.text.NumberFormat
 import java.util.Currency
@@ -40,13 +43,15 @@ private const val TAG = "CurrentCashScreen"
 fun CurrentCashScreen(
     modifier: Modifier = Modifier
 ) {
-    var cashAmount by rememberSaveable { mutableDoubleStateOf(0.0) }
+    val viewModel: CurrentCashViewModel = viewModel()
+    val uiState by viewModel.uiState.collectAsState()
+
     var showAddDialog by rememberSaveable { mutableStateOf(false) }
     var showReduceDialog by rememberSaveable { mutableStateOf(false) }
 
     Row(modifier = modifier) {
         CurrentCashContent(
-            cash = cashAmount,
+            cash = uiState.currentCash,
             onAddClick = {
                 showAddDialog = true
             },
@@ -57,28 +62,22 @@ fun CurrentCashScreen(
         )
     }
     if (showAddDialog) {
-        var amountCashString by rememberSaveable { mutableStateOf("0.00") }
         AddCashDialog(
-            cashAmount = cashAmount,
-            amountCashString = amountCashString,
+            cashAmount = uiState.currentCash,
             onCancelClick = { showAddDialog = false },
             onConfirmClick = {
-                cashAmount += amountCashString.toDouble()
+                viewModel.changeCurrentCash(it)
                 showAddDialog = false
             },
-            onTextChanged = { amountCashString = it }
         )
     } else if (showReduceDialog) {
-        var amountCashString by rememberSaveable { mutableStateOf("0.00") }
         ReduceCashDialog(
-            cashAmount = cashAmount,
-            amountCashString = amountCashString,
+            cashAmount = uiState.currentCash,
             onCancelClick = { showReduceDialog = false },
             onConfirmClick = {
-                cashAmount -= amountCashString.toDouble()
+                viewModel.changeCurrentCash(-it)
                 showReduceDialog = false
-            },
-            onTextChanged = { amountCashString = it }
+            }
         )
     }
 }
@@ -173,12 +172,11 @@ private fun CurrentCashButton(
 @Composable
 private fun AddCashDialog(
     cashAmount: Double,
-    amountCashString: String,
     onCancelClick: () -> Unit,
-    onConfirmClick: () -> Unit,
-    onTextChanged: (String) -> Unit,
+    onConfirmClick: (Double) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var amountCashString by rememberSaveable { mutableStateOf("0.00") }
     AlertDialog(
         onDismissRequest = onCancelClick,
         dismissButton = {
@@ -187,7 +185,9 @@ private fun AddCashDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onConfirmClick) {
+            TextButton(onClick = {
+                onConfirmClick(amountCashString.toDoubleOrNull() ?: 0.0)
+            }) {
                 Text("Add")
             }
         },
@@ -198,7 +198,7 @@ private fun AddCashDialog(
                 OutlinedTextField(
                     label = { Text("Add amount") },
                     value = amountCashString,
-                    onValueChange = onTextChanged
+                    onValueChange = { amountCashString = it }
                 )
             }
         },
@@ -209,22 +209,23 @@ private fun AddCashDialog(
 @Composable
 fun ReduceCashDialog(
     cashAmount: Double,
-    amountCashString: String,
     onCancelClick: () -> Unit,
-    onConfirmClick: () -> Unit,
-    onTextChanged: (String) -> Unit,
+    onConfirmClick: (Double) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var amountCashString by rememberSaveable { mutableStateOf("0.00") }
     AlertDialog(
         onDismissRequest = onCancelClick,
         dismissButton = {
             TextButton(onClick = onCancelClick) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel_button_text))
             }
         },
         confirmButton = {
-            TextButton(onClick = onConfirmClick) {
-                Text("Reduce")
+            TextButton(onClick = {
+                onConfirmClick(amountCashString.toDoubleOrNull() ?: 0.0)
+            }) {
+                Text(stringResource(R.string.reduce_button_text))
             }
         },
         title = { Text("Reduce from cash") },
@@ -232,9 +233,9 @@ fun ReduceCashDialog(
             Column {
                 Text(text = "$cashAmount - $amountCashString = ${cashAmount - amountCashString.toDouble()}")
                 OutlinedTextField(
-                    label = { Text("Reduce amount") },
+                    label = { Text(stringResource(R.string.reduce_text)) },
                     value = amountCashString,
-                    onValueChange = onTextChanged
+                    onValueChange = { amountCashString = it }
                 )
             }
         },
