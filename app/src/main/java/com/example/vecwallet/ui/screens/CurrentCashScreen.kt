@@ -2,6 +2,7 @@ package com.example.vecwallet.ui.screens
 
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -48,9 +50,7 @@ import java.util.Locale
 private const val TAG = "CurrentCashScreen"
 
 @Composable
-fun CurrentCashScreen(
-    modifier: Modifier = Modifier
-) {
+fun CurrentCashScreen(modifier: Modifier = Modifier) {
     val viewModel: CurrentCashViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsState()
 
@@ -80,7 +80,7 @@ fun CurrentCashScreen(
         } else {
             CashHistoryList(
                 historyList = uiState.historyList,
-                contentPadding = PaddingValues(top = 24.dp)
+                contentPadding = PaddingValues(top = 24.dp, start = 8.dp, end = 8.dp)
             )
         }
     }
@@ -288,7 +288,19 @@ fun CashHistoryItem(
     amount: Amount,
     modifier: Modifier = Modifier
 ) {
-    Card(modifier = modifier) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = if (amount.operType == OperationType.ADDITION) Color(0x7700FF00)
+            else Color(0x77FF0000)
+        ),
+        modifier = modifier
+            .border(
+                width = 2.dp,
+                color = if (amount.operType == OperationType.ADDITION) Color(0xFF00FF00)
+                else Color(0xFFFF0000),
+                shape = MaterialTheme.shapes.medium
+            )
+    ) {
         Text(
             text = amount.fullHistory,
             modifier = Modifier
