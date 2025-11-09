@@ -4,13 +4,18 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -32,7 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vecwallet.R
+import com.example.vecwallet.ui.model.Amount
+import com.example.vecwallet.ui.model.fullHistory
 import com.example.vecwallet.ui.theme.VecWalletTheme
+import com.example.vecwallet.ui.utils.OperationType
 import java.text.NumberFormat
 import java.util.Currency
 import java.util.Locale
@@ -49,7 +57,7 @@ fun CurrentCashScreen(
     var showAddDialog by rememberSaveable { mutableStateOf(false) }
     var showReduceDialog by rememberSaveable { mutableStateOf(false) }
 
-    Row(modifier = modifier) {
+    Column(modifier = modifier) {
         CurrentCashContent(
             cash = uiState.currentCash,
             onAddClick = {
@@ -60,6 +68,21 @@ fun CurrentCashScreen(
             },
             modifier = Modifier.padding(horizontal = 8.dp)
         )
+        if (uiState.historyList.isEmpty()) {
+            Text(
+                text = "There is no records",
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier
+                    .paddingFromBaseline(top = 24.dp)
+                    .fillMaxWidth()
+            )
+        } else {
+            CashHistoryList(
+                historyList = uiState.historyList,
+                contentPadding = PaddingValues(top = 24.dp)
+            )
+        }
     }
     if (showAddDialog) {
         AddCashDialog(
@@ -241,6 +264,73 @@ fun ReduceCashDialog(
         },
         modifier = modifier
     )
+}
+
+@Composable
+fun CashHistoryList(
+    historyList: List<Amount>,
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+) {
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = contentPadding,
+        modifier = modifier
+    ) {
+        items(historyList) { amount ->
+            CashHistoryItem(amount = amount)
+        }
+    }
+}
+
+@Composable
+fun CashHistoryItem(
+    amount: Amount,
+    modifier: Modifier = Modifier
+) {
+    Card(modifier = modifier) {
+        Text(
+            text = amount.fullHistory,
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth()
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun CashHistoryItemPreview() {
+    VecWalletTheme {
+        CashHistoryItem(
+            amount = Amount(
+                differenceAmount = 12.32,
+                history = "Cash added",
+                operType = OperationType.ADDITION
+            )
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun CashHistoryPreview() {
+    VecWalletTheme {
+        CashHistoryList(
+            historyList = listOf(
+                Amount(
+                    differenceAmount = 12.32,
+                    history = "Cash added",
+                    operType = OperationType.ADDITION
+                ),
+                Amount(
+                    differenceAmount = 23.32,
+                    history = "Cash reduced",
+                    operType = OperationType.SUBSTRACTION
+                )
+            )
+        )
+    }
 }
 
 @Preview(showBackground = true)

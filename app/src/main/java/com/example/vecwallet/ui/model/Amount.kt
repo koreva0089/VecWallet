@@ -7,3 +7,7 @@ data class Amount(
     val history: String,
     val operType: OperationType
 )
+
+val Amount.fullHistory: String
+    get() = "$history: ${if (operType == OperationType.ADDITION) "+" else ""}" +
+            "$differenceAmount"
